@@ -1,7 +1,8 @@
-class User{
+class User {
 
     constructor(name, gender, birth, country, email, password, photo, admin){
 
+        this._id;
         this._name = name;
         this._gender = gender;
         this._birth = birth;
@@ -14,6 +15,10 @@ class User{
 
     }
 
+    get id(){
+        return this._id;
+    }
+
     get register(){
         return this._register;
     }
@@ -21,25 +26,29 @@ class User{
     get name(){
         return this._name;
     }
-    
-    get gender(){
+
+    get gender() {
         return this._gender;
     }
-    get birth(){
+
+    get birth() {
         return this._birth;
     }
-    get country(){
+
+    get country() {
         return this._country;
     }
-    get email(){
+
+    get email() {
         return this._email;
     }
-    get password(){
-        return this._password;
+
+    get photo() {
+        return this._photo;
     }
 
-    get photo(){
-        return this._photo;
+    get password() {
+        return this._password;
     }
 
     get admin() {
@@ -53,15 +62,17 @@ class User{
     loadFromJSON(json){
 
         for (let name in json){
-
+            
             switch(name){
+
                 case '_register':
                     this[name] = new Date(json[name]);
                 break;
                 default:
-                    this[name] = json[name];
-            }
+                    if(name.substring(0, 1) === '_') this[name] = json[name];
 
+            }
+            
 
         }
 
@@ -69,29 +80,7 @@ class User{
 
     static getUsersStorage() {
 
-        let users = [];
-
-        if (localStorage.getItem("users")) {
-
-            users = JSON.parse(localStorage.getItem("users"));
-
-        }
-
-        return users;
-
-    }
-
-    getNewID(){
-
-        let usersID = parseInt(localStorage.getItem("usersID"));
-
-        if (!usersID > 0) usersID = 0;
-
-        usersID++;
-
-        localStorage.setItem("usersID", usersID);
-
-        return usersID;
+        return Fetch.get('/users/');
 
     }
 
@@ -99,9 +88,9 @@ class User{
 
         let json = {};
 
-        Object.keys(this).forEach(key =>{
+        Object.keys(this).forEach(key => {
 
-            if (this[key] !== undefined) json[key] = this[key]
+            if (this[key] !== undefined) json[key] = this[key];
 
         });
 
@@ -115,23 +104,23 @@ class User{
 
             let promise;
 
-            if(this.id){
+            if (this.id) {
 
-                promise  = HttpRequest.put(`/users/${this.id}`, this.toJSON);
+                promise = Fetch.put(`/users/${this.id}`, this.toJSON());
 
-            } else{
+            } else {
 
-                promise = HttpRequest.post(`/users/${this.id}`, this.toJSON);
+                promise = Fetch.post(`/users`, this.toJSON());
 
             }
 
-            promise.then( data =>{
+            promise.then(data => {
 
                 this.loadFromJSON(data);
 
                 resolve(this);
 
-            }).catch(e =>{
+            }).catch(e => {
 
                 reject(e);
 
@@ -143,19 +132,7 @@ class User{
 
     remove(){
 
-        let users = User.getUsersStorage();
-
-        users.forEach((userData, index)=>{
-
-            if (this._id == userData._id) {
-
-                users.splice(index, 1);
-
-            }
-
-        });
-
-        localStorage.setItem("users", JSON.stringify(users));
+       return Fetch.delete(`/users/${this.id}`);
 
     }
 
